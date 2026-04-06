@@ -31,9 +31,3 @@
   - [ExchangeRate-API](https://www.exchangerate-api.com/) – fiat rates
   - [CryptoCompare](https://min-api.cryptocompare.com/) – crypto prices
 - Icons: Font Awesome 6, flag icons (lipis), cryptocurrency icons (atomiclabs)
-
-## 📦 Installation & Usage
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/malaklabs/Coinvibe-Currency_CryptoConverter.git
