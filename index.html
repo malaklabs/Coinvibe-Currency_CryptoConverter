@@ -1,0 +1,843 @@
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%238B5CF6' rx='20'/%3E%3Ctext x='38' y='72' font-size='56' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold'%3EC%3C/text%3E%3Ctext x='62' y='68' font-size='30' fill='white'%3E⇄%3C/text%3E%3C/svg%3E">
+<title>CoinVibe · Live Currency & Crypto Converter</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            transition: background 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1), color 0.3s ease;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body.dark {
+            background-size: 200% 200%;
+            animation: bgFlow 12s ease infinite;
+            color: #E2E8F0;
+        }
+
+        body.light {
+            background-size: 200% 200%;
+            animation: bgFlowLight 12s ease infinite;
+            color: #0F172A;
+        }
+
+        @keyframes bgFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes bgFlowLight {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        #vibe-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            display: block;
+        }
+
+        .converter-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1300px;
+            width: 100%;
+            border-radius: 2rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            animation: fadeSlideUp 0.6s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        body.dark .converter-container {
+            background: rgba(18, 25, 45, 0.7);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 30px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        body.light .converter-container {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(139, 92, 246, 0.35);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            padding: 0.3rem 1rem;
+            border-radius: 60px;
+            margin-bottom: 0.8rem;
+            font-size: 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .badge::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(115deg, rgba(255,255,255,0) 10%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 90%);
+            transform: rotate(25deg);
+            animation: shimmer 4s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) rotate(25deg); }
+            20% { transform: translateX(100%) rotate(25deg); }
+            100% { transform: translateX(100%) rotate(25deg); }
+        }
+
+        body.dark .badge {
+            background: rgba(255, 215, 0, 0.2);
+            border: 1px solid rgba(255, 215, 0, 0.4);
+        }
+        body.light .badge {
+            background: rgba(139, 92, 246, 0.25);
+            border: 1px solid rgba(139, 92, 246, 0.6);
+        }
+
+        .badge i { font-size: 0.9rem; z-index: 2; }
+        body.dark .badge i { color: #FBBF24; }
+        body.light .badge i { color: #7C3AED; }
+
+        .badge span {
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            background: linear-gradient(135deg, #FDE68A, #F59E0B);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            z-index: 2;
+            font-size: 0.8rem;
+        }
+
+        body.light .badge span {
+            background: linear-gradient(135deg, #7C3AED, #C026D3);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFFFFF, #A5B4FC);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.2rem;
+            letter-spacing: -0.5px;
+        }
+
+        body.light h1 {
+            background: linear-gradient(135deg, #4F46E5, #8B5CF6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .sub {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.8rem;
+        }
+        body.dark .sub { color: #9CA3AF; }
+        body.light .sub { color: #475569; font-weight: 500; }
+
+        .live-tag {
+            padding: 2px 8px;
+            border-radius: 40px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            animation: pulseGlow 2s infinite;
+        }
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        body.dark .live-tag {
+            background: #10B98120;
+            color: #34D399;
+            border: 1px solid #34D39960;
+        }
+        body.light .live-tag {
+            background: #10B98120;
+            color: #059669;
+            border: 1px solid #10B98180;
+        }
+
+        .converter-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .card-panel {
+            flex: 1;
+            min-width: 260px;
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            transition: transform 0.6s ease-in-out, background 0.35s, box-shadow 0.35s;
+            transform-style: preserve-3d;
+            backface-visibility: visible;
+            animation: cardFloatIn 0.5s ease backwards;
+            animation-delay: 0.1s;
+        }
+
+        .card-panel.flip {
+            transform: rotateY(180deg);
+        }
+
+        .card-panel:nth-child(2) { animation-delay: 0.2s; }
+        .card-panel:last-child { animation-delay: 0.3s; }
+
+        @keyframes cardFloatIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        body.dark .card-panel {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        body.light .card-panel {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(0,0,0,0.08);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+
+        .card-panel:hover {
+            transform: translateY(-5px);
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            border-left: 3px solid #8B5CF6;
+            padding-left: 10px;
+        }
+
+        .amount-input {
+            border-radius: 1.2rem;
+            padding: 0.7rem 1rem;
+            width: 100%;
+            font-size: 1.2rem;
+            font-weight: 600;
+            outline: none;
+            transition: all 0.2s ease;
+            margin-bottom: 1rem;
+        }
+
+        body.dark .amount-input {
+            background: #1E293B;
+            border: 1px solid #334155;
+            color: #F1F5F9;
+        }
+        body.light .amount-input {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #0F172A;
+        }
+
+        .amount-input:focus {
+            border-color: #8B5CF6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+            transform: scale(1.01);
+        }
+
+        .selector-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-radius: 1.5rem;
+            padding: 0.2rem 0.2rem 0.2rem 0.8rem;
+            margin-bottom: 1rem;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+            position: relative;
+        }
+
+        body.dark .selector-wrapper {
+            background: #0F172A;
+            border: 1px solid #2D3A5E;
+        }
+        body.light .selector-wrapper {
+            background: #F8FAFC;
+            border: 1px solid #cbd5e1;
+        }
+
+        .selector-wrapper:focus-within {
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.5);
+            border-color: #8B5CF6;
+        }
+
+        select {
+            background: transparent !important;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            flex: 1;
+            padding: 0.5rem 0.2rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-family: 'Inter', monospace;
+            color: inherit;
+        }
+
+        select::-ms-expand {
+            display: none;
+        }
+
+        select:focus {
+            outline: none;
+        }
+
+        body.dark select { color: #FACC15; }
+        body.light select { color: #6D28D9; }
+
+        .currency-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+
+        .rate-info {
+            border-radius: 1rem;
+            padding: 0.5rem;
+            text-align: center;
+            font-size: 0.75rem;
+            margin-top: 0.8rem;
+            font-weight: 500;
+        }
+
+        .result-area {
+            border-radius: 1.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            text-align: center;
+            transition: all 0.25s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-area::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #8B5CF6, #EC4899, #8B5CF6);
+            border-radius: 1.5rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: -1;
+        }
+        .result-area:hover::before {
+            opacity: 0.5;
+        }
+
+        body.dark .result-area {
+            background: linear-gradient(105deg, #0B1120, #0F172A);
+            border: 1px solid #8B5CF680;
+        }
+        body.light .result-area {
+            background: #fefce8;
+            border: 1px solid #8B5CF6;
+        }
+
+        .converted-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 1.2rem;
+        }
+        body.dark .converted-value { color: #E2E8F0; }
+        body.light .converted-value { color: #0F172A; }
+
+        .result-detail {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 0;
+        }
+
+        .target-currency-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .swap-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+            margin: 0.5rem auto;
+            background: #8B5CF6;
+            color: white;
+            box-shadow: 0 4px 10px rgba(139, 92, 246, 0.4);
+        }
+        .swap-btn:hover {
+            transform: rotate(180deg) scale(1.05);
+            background: #7C3AED;
+        }
+
+        .footer-note {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.7rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(139, 92, 246, 0.25);
+        }
+
+        .refresh-indicator {
+            padding: 3px 10px;
+            border-radius: 30px;
+            background: transparent;
+        }
+        .refresh-indicator i {
+            transition: transform 0.5s;
+        }
+        .refresh-indicator:hover i {
+            transform: rotate(360deg);
+        }
+
+        .eye-toggle {
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+        .eye-toggle:hover {
+            transform: scale(1.02);
+        }
+        .eye-wrapper {
+            display: flex;
+            gap: 12px;
+        }
+        .eye {
+            width: 44px;
+            height: 44px;
+            background: var(--eye-white);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            box-shadow: 
+                0 calc(var(--pixel-unit, 3px) * -1) 0 0 var(--eye-border),
+                0 var(--pixel-unit, 3px) 0 0 var(--eye-border),
+                calc(var(--pixel-unit, 3px) * -1) 0 0 0 var(--eye-border),
+                var(--pixel-unit, 3px) 0 0 0 var(--eye-border);
+            animation: blink 6s infinite;
+            transform-origin: center;
+        }
+        .eye:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+        .pupil {
+            width: 16px;
+            height: 16px;
+            background: var(--pupil-color);
+            position: absolute;
+            box-shadow: inset -2px 2px 0px rgba(255, 255, 255, 0.2);
+            will-change: transform;
+        }
+        @keyframes blink {
+            0%, 90%, 100% { transform: scaleY(1); }
+            95% { transform: scaleY(0.1); }
+        }
+
+        body.dark {
+            --eye-white: #1E293B;
+            --eye-border: #475569;
+            --pupil-color: #FDE047;
+            --pixel-unit: 3px;
+        }
+        body.light {
+            --eye-white: #ffffff;
+            --eye-border: #cbd5e1;
+            --pupil-color: #1F2937;
+            --pixel-unit: 3px;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+
+        .loader-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #8B5CF6;
+            border-radius: 50%;
+            animation: pulse 1.2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+
+        .selected-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+
+        @media (max-width: 780px) {
+            body { padding: 0.8rem; }
+            .converter-container { padding: 1rem; }
+            h1 { font-size: 1.6rem; }
+            .converted-value { font-size: 1.4rem; margin-bottom: 0.8rem; }
+            .badge { padding: 0.2rem 0.8rem; }
+            .badge span { font-size: 0.7rem; }
+            .card-panel { padding: 1rem; min-width: 240px; }
+            .panel-title { font-size: 1rem; }
+            .amount-input { font-size: 1rem; padding: 0.6rem 0.8rem; }
+            .eye { width: 36px; height: 36px; }
+            .pupil { width: 12px; height: 12px; }
+            .eye-wrapper { gap: 8px; }
+            .swap-btn { width: 40px; height: 40px; font-size: 1.1rem; }
+            .footer-note { flex-direction: column; align-items: center; text-align: center; gap: 0.5rem; }
+            .target-currency-badge { padding: 4px 12px; font-size: 0.75rem; }
+        }
+
+        @media (max-width: 480px) {
+            .converter-grid { gap: 1rem; }
+            .card-panel { min-width: 100%; }
+        }
+    </style>
+</head>
+<body class="dark">
+    <canvas id="vibe-canvas"></canvas>
+    <div class="converter-container">
+        <div class="header-top">
+            <div class="badge">
+                <i class="fas fa-chart-line"></i>
+                <span>LIVE · FOREX & CRYPTO + DZD</span>
+                <i class="fas fa-coins"></i>
+            </div>
+            <div class="eye-toggle" id="eyeToggle">
+                <div class="eye-wrapper">
+                    <div class="eye"><div class="pupil"></div></div>
+                    <div class="eye"><div class="pupil"></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="header">
+            <h1><i class="fas fa-exchange-alt" style="font-size: 1.6rem; margin-right: 6px;"></i> CoinVibe</h1>
+            <div class="sub">
+                <span>real-time rates (fiat + crypto)</span>
+                <span class="live-tag"><i class="fas fa-circle" style="font-size: 0.4rem; margin-right: 4px; color:#10B981;"></i> LIVE API</span>
+            </div>
+        </div>
+
+        <div class="converter-grid">
+            <div class="card-panel" id="fromCard">
+                <div class="panel-title"><i class="fas fa-arrow-up-from-bracket"></i> You send</div>
+                <input type="number" id="amountFrom" class="amount-input" value="100" step="any" placeholder="0.00">
+                <div class="selector-wrapper">
+                    <img id="fromCurrencyIcon" class="currency-icon" src="https://flagicons.lipis.dev/flags/4x3/us.svg" alt="icon">
+                    <select id="fromCurrency"></select>
+                </div>
+                <div class="rate-info" id="fromRateInfo">
+                    <i class="fas fa-info-circle"></i> 1 USD = ...
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: center;">
+                <div class="swap-btn" id="swapButton">
+                    <i class="fas fa-arrow-right-arrow-left"></i>
+                </div>
+            </div>
+
+            <div class="card-panel" id="toCard">
+                <div class="panel-title"><i class="fas fa-arrow-down-to-bracket"></i> You receive</div>
+                <div class="result-area">
+                    <div class="small-label">converted amount</div>
+                    <div class="converted-value" id="convertedAmount">—</div>
+                    <div class="result-detail">
+                        <div class="target-currency-badge" id="targetCurrencyBadge">
+                            <img id="toCurrencyIcon" class="selected-icon" src="https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@master/32/icon/btc.png" alt="icon">
+                            <span id="toCurrencyLabel">BTC</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="selector-wrapper">
+                    <img id="toCurrencyIconSelect" class="currency-icon" src="https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@master/32/icon/btc.png" alt="icon">
+                    <select id="toCurrency"></select>
+                </div>
+                <div class="rate-info" id="toRateInfo">
+                    <i class="fas fa-charging-station"></i> waiting for rates...
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-note">
+            <div><i class="fas fa-database"></i> Powered by ExchangeRate.host + CryptoCompare</div>
+            <div class="refresh-indicator"><i class="fas fa-sync-alt"></i> <span id="lastUpdate">Auto-refresh 60s</span></div>
+        </div>
+    </div>
+
+    <script>
+        // ---------- VIBE COLOR MAPPING ----------
+        const vibeColors = {
+            USD: "#10B981", EUR: "#3B82F6", GBP: "#EF4444", JPY: "#F59E0B", CAD: "#EC4899",
+            AUD: "#8B5CF6", CHF: "#14B8A6", CNY: "#EAB308", INR: "#F97316", BRL: "#06B6D4",
+            DZD: "#A855F7", BTC: "#F7931A", ETH: "#627EEA", BNB: "#F3BA2F", SOL: "#00FFBD",
+            XRP: "#23292F", DOGE: "#C3A634", ADA: "#0033AD", MATIC: "#8247E5", LTC: "#BFBBBB", DOT: "#E6007A"
+        };
+        let currentVibeColor = "#8B5CF6";
+        function updateVibeColor(currency) {
+            currentVibeColor = vibeColors[currency] || "#8B5CF6";
+            const isDark = document.body.classList.contains('dark');
+            if (isDark) {
+                document.body.style.background = `linear-gradient(145deg, #0B1120, ${currentVibeColor}40, #0a0f1c)`;
+                document.body.style.backgroundSize = "200% 200%";
+                document.body.style.animation = "bgFlow 12s ease infinite";
+            } else {
+                document.body.style.background = `linear-gradient(145deg, #f0f4ff, ${currentVibeColor}30, #ffffff)`;
+                document.body.style.backgroundSize = "200% 200%";
+                document.body.style.animation = "bgFlowLight 12s ease infinite";
+            }
+        }
+
+        // ---------- CANVAS BACKGROUND ----------
+        const canvas = document.getElementById('vibe-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        const symbols = ['$', '€', '£', '₿', '¥', '₽', '₹', '₩', '₴', '₦'];
+        const mouse = { x: null, y: null, radius: 180 };
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; initParticles(); }
+        window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
+        class Particle {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.baseX = x; this.baseY = y;
+                this.symbol = symbols[Math.floor(Math.random() * symbols.length)];
+                this.size = Math.random() * 20 + 12;
+                this.density = (Math.random() * 25) + 5;
+            }
+            draw() { ctx.fillStyle = currentVibeColor + "40"; ctx.font = `${this.size}px "Inter", "Courier New", monospace`; ctx.fillText(this.symbol, this.x, this.y); }
+            update() {
+                if (mouse.x !== null && mouse.y !== null) {
+                    let dx = mouse.x - this.x, dy = mouse.y - this.y, distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < mouse.radius) {
+                        let forceDirectionX = dx / distance, forceDirectionY = dy / distance;
+                        let force = (mouse.radius - distance) / mouse.radius;
+                        this.x -= forceDirectionX * force * this.density;
+                        this.y -= forceDirectionY * force * this.density;
+                    } else {
+                        if (this.x !== this.baseX) this.x -= (this.x - this.baseX) / 12;
+                        if (this.y !== this.baseY) this.y -= (this.y - this.baseY) / 12;
+                    }
+                }
+            }
+        }
+        function initParticles() {
+            particles = [];
+            const cols = Math.ceil(canvas.width / 70), rows = Math.ceil(canvas.height / 70);
+            for (let i = 0; i < cols * rows; i++) {
+                let x = (i % cols) * 70 + 35, y = Math.floor(i / cols) * 70 + 35;
+                if (x < canvas.width && y < canvas.height) particles.push(new Particle(x, y));
+            }
+            for (let i = 0; i < 60; i++) particles.push(new Particle(Math.random() * canvas.width, Math.random() * canvas.height));
+        }
+        function animateCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animateCanvas); }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        animateCanvas();
+
+        // ---------- CURRENCY & CRYPTO CONFIG ----------
+        const FIAT_CURRENCIES = ["USD", "EUR", "GBP", "JPY", "CAD", "AUD", "CHF", "CNY", "INR", "BRL", "DZD"];
+        const CRYPTO_SYMBOLS = ["BTC", "ETH", "BNB", "SOL", "XRP", "DOGE", "ADA", "MATIC", "LTC", "DOT"];
+        const ALL_CURRENCIES = [...FIAT_CURRENCIES, ...CRYPTO_SYMBOLS];
+        function getCurrencyIconUrl(currency) {
+            if (FIAT_CURRENCIES.includes(currency)) {
+                const code = { USD:"us", EUR:"eu", GBP:"gb", JPY:"jp", CAD:"ca", AUD:"au", CHF:"ch", CNY:"cn", INR:"in", BRL:"br", DZD:"dz" }[currency] || "us";
+                return `https://flagicons.lipis.dev/flags/4x3/${code}.svg`;
+            } else {
+                return `https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@master/32/icon/${currency.toLowerCase()}.png`;
+            }
+        }
+        let fiatRates = { USD: 1 }, cryptoUSDPrice = {}, updateTimer = null;
+        const fromSelect = document.getElementById('fromCurrency'), toSelect = document.getElementById('toCurrency');
+        const amountFromInput = document.getElementById('amountFrom'), convertedSpan = document.getElementById('convertedAmount');
+        const fromRateInfoSpan = document.getElementById('fromRateInfo'), toRateInfoSpan = document.getElementById('toRateInfo');
+        const fromCurrencyIcon = document.getElementById('fromCurrencyIcon'), toCurrencyIconSelect = document.getElementById('toCurrencyIconSelect');
+        const toCurrencyIconBadge = document.getElementById('toCurrencyIcon'), toCurrencyLabelSpan = document.getElementById('toCurrencyLabel');
+        const swapBtn = document.getElementById('swapButton'), eyeToggle = document.getElementById('eyeToggle');
+        const fromCard = document.getElementById('fromCard'), toCard = document.getElementById('toCard');
+
+        function swapWith3DFlip() {
+            fromCard.classList.add('flip');
+            toCard.classList.add('flip');
+            setTimeout(() => {
+                const temp = fromSelect.value;
+                fromSelect.value = toSelect.value;
+                toSelect.value = temp;
+                updateConversion();
+                updateCurrencyIcons();
+                updateVibeColor(fromSelect.value);
+            }, 300);
+            setTimeout(() => {
+                fromCard.classList.remove('flip');
+                toCard.classList.remove('flip');
+            }, 600);
+        }
+
+        function initEyeTracker() {
+            const eyes = document.querySelectorAll('.eye'), pupils = document.querySelectorAll('.pupil');
+            let eyeCenters = [];
+            function updateCenters() { eyeCenters = Array.from(eyes).map(eye => { const rect = eye.getBoundingClientRect(); return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }; }); }
+            updateCenters();
+            window.addEventListener('resize', updateCenters);
+            window.addEventListener('mousemove', (e) => { pupils.forEach((pupil, i) => { const center = eyeCenters[i]; if (!center) return; const dx = e.clientX - center.x, dy = e.clientY - center.y, angle = Math.atan2(dy, dx), maxDistance = 12; pupil.style.transform = `translate(${Math.cos(angle) * maxDistance}px, ${Math.sin(angle) * maxDistance}px)`; }); });
+        }
+        function initDarkModeWithEyes() {
+            const savedTheme = localStorage.getItem('coinvibe-theme');
+            if (savedTheme === 'light') { document.body.classList.remove('dark'); document.body.classList.add('light'); } 
+            else { document.body.classList.add('dark'); document.body.classList.remove('light'); }
+            updateVibeColor(fromSelect.value);
+            eyeToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (document.body.classList.contains('dark')) { document.body.classList.remove('dark'); document.body.classList.add('light'); localStorage.setItem('coinvibe-theme', 'light'); } 
+                else { document.body.classList.remove('light'); document.body.classList.add('dark'); localStorage.setItem('coinvibe-theme', 'dark'); }
+                updateVibeColor(fromSelect.value);
+            });
+        }
+        function updateCurrencyIcons() {
+            fromCurrencyIcon.src = getCurrencyIconUrl(fromSelect.value);
+            toCurrencyIconSelect.src = getCurrencyIconUrl(toSelect.value);
+            toCurrencyIconBadge.src = getCurrencyIconUrl(toSelect.value);
+            toCurrencyLabelSpan.innerText = toSelect.value;
+        }
+        function populateDropdowns() {
+            ALL_CURRENCIES.forEach(curr => {
+                let opt1 = document.createElement('option'); opt1.value = curr; opt1.textContent = curr; fromSelect.appendChild(opt1);
+                let opt2 = document.createElement('option'); opt2.value = curr; opt2.textContent = curr; toSelect.appendChild(opt2);
+            });
+            fromSelect.value = "USD"; toSelect.value = "BTC";
+            updateCurrencyIcons(); updateConversion(); updateVibeColor(fromSelect.value);
+        }
+        async function fetchFiatRates() {
+            try { const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD'); if (!res.ok) throw new Error(); const data = await res.json(); if (data && data.rates) { for (let [curr, rate] of Object.entries(data.rates)) if (FIAT_CURRENCIES.includes(curr)) fiatRates[curr] = rate; fiatRates.USD = 1; FIAT_CURRENCIES.forEach(f => { if (!fiatRates[f] && f !== 'USD') fiatRates[f] = f === 'DZD' ? 134.5 : 1; }); } } catch { fiatRates = { USD:1, EUR:0.92, GBP:0.79, JPY:148.2, CAD:1.36, AUD:1.52, CHF:0.88, CNY:7.24, INR:83.4, BRL:5.05, DZD:134.5 }; }
+        }
+        async function fetchCryptoRates() {
+            const cryptoList = CRYPTO_SYMBOLS.join(',');
+            try { const res = await fetch(`https://min-api.cryptocompare.com/data/pricemulti?fsyms=${cryptoList}&tsyms=USD`); if (!res.ok) throw new Error(); const data = await res.json(); for (let sym of CRYPTO_SYMBOLS) cryptoUSDPrice[sym] = data[sym]?.USD || { BTC:63500, ETH:3250, BNB:560, SOL:148, XRP:0.54, DOGE:0.125, ADA:0.36, MATIC:0.66, LTC:73, DOT:6.9 }[sym] || 1; } catch { const fallback = { BTC:63500, ETH:3250, BNB:560, SOL:148, XRP:0.54, DOGE:0.125, ADA:0.36, MATIC:0.66, LTC:73, DOT:6.9 }; CRYPTO_SYMBOLS.forEach(sym => cryptoUSDPrice[sym] = fallback[sym] || 1); }
+        }
+        function getUSDPrice(currency) { return FIAT_CURRENCIES.includes(currency) ? (fiatRates[currency] || 1) : (cryptoUSDPrice[currency] || 1); }
+        function getConversionRate(fromCurr, toCurr) { return getUSDPrice(toCurr) / getUSDPrice(fromCurr); }
+        function updateConversion() {
+            let amount = parseFloat(amountFromInput.value); if (isNaN(amount)) amount = 0;
+            const fromCurr = fromSelect.value, toCurr = toSelect.value, rate = getConversionRate(fromCurr, toCurr), result = amount * rate;
+            let formattedResult;
+            if (toCurr === 'BTC' || toCurr === 'ETH' || toCurr === 'BNB' || toCurr === 'SOL') formattedResult = result.toFixed(8);
+            else if (toCurr === 'DOGE' || toCurr === 'XRP') formattedResult = result.toFixed(4);
+            else formattedResult = result.toFixed(2);
+            convertedSpan.innerHTML = `${formattedResult} <span style="font-size:0.9rem; font-weight:500;">${toCurr}</span>`;
+            toCurrencyLabelSpan.innerText = toCurr;
+            const inv = 1 / rate;
+            fromRateInfoSpan.innerHTML = `<i class="fas fa-chart-simple"></i> 1 ${fromCurr} = ${rate.toFixed(6)} ${toCurr} &nbsp;|&nbsp; 1 ${toCurr} = ${inv.toFixed(6)} ${fromCurr}`;
+            toRateInfoSpan.innerHTML = `<i class="fas fa-coins"></i> Live: 1 ${toCurr} = ${inv.toFixed(6)} ${fromCurr}`;
+            updateCurrencyIcons();
+        }
+        async function refreshAllRates() {
+            convertedSpan.innerHTML = '<span class="loader-dot"></span>';
+            try { await Promise.all([fetchFiatRates(), fetchCryptoRates()]); updateConversion(); document.getElementById('lastUpdate').innerHTML = `updated ${new Date().toLocaleTimeString()}`; } 
+            catch { convertedSpan.innerHTML = '⚠️ error'; }
+        }
+        function swapCurrencies() { swapWith3DFlip(); }
+        function initEventListeners() {
+            amountFromInput.addEventListener('input', updateConversion);
+            fromSelect.addEventListener('change', () => { updateConversion(); updateCurrencyIcons(); updateVibeColor(fromSelect.value); });
+            toSelect.addEventListener('change', () => { updateConversion(); updateCurrencyIcons(); });
+            swapBtn.addEventListener('click', swapCurrencies);
+        }
+        async function init() { populateDropdowns(); initEventListeners(); initDarkModeWithEyes(); initEyeTracker(); await refreshAllRates(); if (updateTimer) clearInterval(updateTimer); updateTimer = setInterval(refreshAllRates, 60000); }
+        init();
+    </script>
+</body>
+</html>
